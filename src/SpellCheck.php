@@ -2,6 +2,7 @@
 
 namespace Gin0115\PHPTypo;
 
+use Gin0115\PHPTypo\Config\ConfigLoader;
 use Silly\Command\Command;
 use Gin0115\PHPTypo\Dictionary\DictionaryProvider;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,8 +26,22 @@ class SpellCheck extends Command
         OutputInterface $output, //phpcs:disable PEAR.Functions.ValidDefaultValue.NotAtEnd -- no control over arg order
         InputInterface $input
     ) {
+
+        $config = (new ConfigLoader(
+            dirname(__DIR__, 1),
+            $src,
+            $dict,
+            $minWord
+        ))->getConfig();
+        dump($config);
+
+
+
+
+
+
         // PROOF OF CONCEPT.
-        
+
         $dictionary = (new DictionaryProvider())->language($dict);
 
 
@@ -44,7 +59,7 @@ class SpellCheck extends Command
 
             foreach ($pieces ?: [] as $key => $piece) {
                 // Only check if word longer than minword
-                if (\mb_strlen($piece) >= $minWord && ! $dictionary->validWord($piece)) {
+                if (\mb_strlen($piece) >= $minWord && !$dictionary->validWord($piece)) {
                     $output->writeln(
                         \sprintf(
                             "(Class Name : %s) %s not found in %s dictionary on line %d of %s",
