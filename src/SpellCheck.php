@@ -5,6 +5,7 @@ namespace Gin0115\PHPTypo;
 use Gin0115\PHPTypo\Config\ConfigLoader;
 use Silly\Command\Command;
 use Gin0115\PHPTypo\Dictionary\DictionaryProvider;
+use Gin0115\PHPTypo\Files\FileList;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -34,6 +35,9 @@ class SpellCheck extends Command
             $minWord
         ))->getConfig();
         dump($config);
+
+        $files = new FileList($config);
+        dump($files);
 
 
 

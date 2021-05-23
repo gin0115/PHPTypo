@@ -54,6 +54,10 @@ class Config
      */
     protected $outputType;
 
+    /**
+     * @var string[]
+     */
+    protected $excludedFiles = [];
 
     /**
      * Creates a new config object.
@@ -216,6 +220,28 @@ class Config
     public function setOutputType(string $outputType)
     {
         $this->outputType = $outputType;
+        return $this;
+    }
+
+    /**
+     * Get the value of excludedFiles
+     *
+     * @return  string[]
+     */ 
+    public function getExcludedFiles()
+    {
+        return $this->excludedFiles;
+    }
+
+    /**
+     * Set the value of excludedFiles
+     *
+     * @param  string  ...$excludedFiles
+     * @return  self
+     */ 
+    public function setExcludedFiles(string ...$excludedFiles)
+    {
+        $this->excludedFiles = $excludedFiles;
         return $this;
     }
 }
