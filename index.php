@@ -14,7 +14,7 @@ $app = new App();
 
 $app->command( 'spell [--src=] [--dict=] [--min-word=]', SpellCheck::class )
 	->defaults([
-    'src' => 'src',
+    'src' => 'tests',
     'dict'  => 'en_gb',
     'min-word' => 2,
 	]);
