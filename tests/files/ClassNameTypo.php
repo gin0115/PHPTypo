@@ -10,7 +10,7 @@
 
 namespace Gin0115\PHPTypo\Tests\Files;
 
-class MisspetlCalssNmae
+class MisspeltCalssNmae
 {
 
 }

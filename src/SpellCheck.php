@@ -2,8 +2,10 @@
 
 namespace Gin0115\PHPTypo;
 
+use SplFileInfo;
 use Silly\Command\Command;
 use Gin0115\PHPTypo\Dictionary\DictionaryProvider;
+use Gin0115\PHPTypo\Report\Element\ElementFactory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -36,15 +38,31 @@ class SpellCheck extends Command
         $traverser     = new \PhpParser\NodeTraverser();
 
         $file = \dirname(__DIR__, 1) . '/tests/files/ClassNameTypo.php';
+        
+        $factory = new ElementFactory(new SplFileInfo($file));
+        // dump($factory);
+        
+
         $stmts = $parser->parse(\file_get_contents($file) ?: '');
         $stmts = $traverser->traverse($stmts ?? []);
         foreach ($stmts[0]->stmts as $node) {
-            $name = $node->name->name;
-            $pieces = preg_split('/(?=[A-Z])/', $name);
-
+            $name = trim($node->name->name);
+            $pieces = array_values(
+                array_filter(
+                    preg_split('/(?=[A-Z])/', $name),
+                    function ($piece) {
+                        return \mb_strlen($piece) !== 0;
+                    }
+                )
+            );
+            $classReport = $factory->createClass(
+                $node->name->getStartLine(),
+                $name
+            );
             foreach ($pieces ?: [] as $key => $piece) {
                 // Only check if word longer than minword
                 if (\mb_strlen($piece) >= $minWord && ! $dictionary->validWord($piece)) {
+                    $classReport->addTypo($key, $piece);
                     $output->writeln(
                         \sprintf(
                             "(Class Name : %s) %s not found in %s dictionary on line %d of %s",
@@ -57,6 +75,14 @@ class SpellCheck extends Command
                     );
                 }
             }
+
+            dump(
+                $classReport,
+                $classReport->isValid(),
+                $classReport->typoCount(),
+                $classReport->getType(),
+                $classReport->getTypos()
+            );
         }
     }
 }
