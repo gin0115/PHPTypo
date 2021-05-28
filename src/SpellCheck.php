@@ -13,89 +13,90 @@ use Gin0115\PHPTypo\Report\Element\ElementFactory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class SpellCheck extends Command {
+class SpellCheck extends Command
+{
 
 
-	/**
-	 * @param string $src
-	 * @param string $dict
-	 * @param string $minWord
-	 * @param OutputInterface $output
-	 * @param InputInterface $input
-	 * @return void
-	 */
-	public function __invoke(
-		string $src,
-		string $dict,
-		string $minWord,
-		OutputInterface $output, //phpcs:disable PEAR.Functions.ValidDefaultValue.NotAtEnd -- no control over arg order
-		InputInterface $input
-	) {
+    /**
+     * @param string $src
+     * @param string $dict
+     * @param string $minWord
+     * @param OutputInterface $output
+     * @param InputInterface $input
+     * @return void
+     */
+    public function __invoke(
+        string $src,
+        string $dict,
+        string $minWord,
+        OutputInterface $output, //phpcs:disable PEAR.Functions.ValidDefaultValue.NotAtEnd -- no control over arg order
+        InputInterface $input
+    ) {
 
-		$config = ( new ConfigLoader(
-			dirname( __DIR__, 1 ),
-			$src,
-			$dict,
-			$minWord
-		) )->getConfig();
-		dump( $config );
+        $config = ( new ConfigLoader(
+            dirname(__DIR__, 1),
+            $src,
+            $dict,
+            $minWord
+        ) )->getConfig();
 
-		$files = new FileList( $config );
-		dump( $files );
 
-		// PROOF OF CONCEPT.
+        $files = new FileList($config);
 
-		$dictionary = ( new DictionaryProvider() )->language( $dict );
 
-		$parser = ( new \PhpParser\ParserFactory() )
-			->create( \PhpParser\ParserFactory::PREFER_PHP7 );
+        // PROOF OF CONCEPT.
 
-		$traverser = new \PhpParser\NodeTraverser();
+        $dictionary = ( new DictionaryProvider() )->language($dict);
 
-		$file = \dirname( __DIR__, 1 ) . '/tests/files/ClassNameTypo.php';
+        $parser = ( new \PhpParser\ParserFactory() )
+            ->create(\PhpParser\ParserFactory::PREFER_PHP7);
 
-		$factory = new ElementFactory( new SplFileInfo( $file ) );
-		// dump($factory);
+        $traverser = new \PhpParser\NodeTraverser();
 
-		$stmts = $parser->parse( \file_get_contents( $file ) ?: '' );
-		$stmts = $traverser->traverse( $stmts ?? array() );
+        $file = \dirname(__DIR__, 1) . '/tests/files/ClassNameTypo.php';
 
-		foreach ( $stmts[0]->stmts as $node ) {
-			$name   = trim( $node->name->name );
-			$pieces = array_values(
-				array_filter(
-					preg_split( '/(?=[A-Z])/', $name ),
-					function ( $piece ) {
-						return \mb_strlen( $piece ) !== 0;
-					}
-				)
-			);
+        $factory = new ElementFactory(new SplFileInfo($file));
+        // dump($factory);
 
-			$classReport = $factory->createClass( $node->name->getStartLine(), $name );
+        $stmts = $parser->parse(\file_get_contents($file) ?: '');
+        $stmts = $traverser->traverse($stmts ?? array());
 
-			foreach ( $pieces ?: array() as $key => $piece ) {
-				// Only check if word longer than minword
-				if ( \mb_strlen( $piece ) >= $minWord && ! $dictionary->validWord( $piece ) ) {
-					$output->writeln(
-						\sprintf(
-							'(Class Name : %s) %s not found in %s dictionary on line %d of %s',
-							$name,
-							$piece,
-							$dict,
-							$node->name->getStartLine(),
-							basename( $file )
-						)
-					);
-				}
-			}
+        foreach ($stmts[0]->stmts as $node) {
+            $name   = trim($node->name->name);
+            $pieces = array_values(
+                array_filter(
+                    preg_split('/(?=[A-Z])/', $name),
+                    function ($piece) {
+                        return \mb_strlen($piece) !== 0;
+                    }
+                )
+            );
 
-			dump(
-				$classReport,
-				$classReport->isValid(),
-				$classReport->typoCount(),
-				$classReport->getType(),
-				$classReport->getTypos()
-			);
-		}
-	}
+            $classReport = $factory->createClass($node->name->getStartLine(), $name);
+
+            foreach ($pieces ?: array() as $key => $piece) {
+                // Only check if word longer than minword
+                if (\mb_strlen($piece) >= $minWord && ! $dictionary->validWord($piece)) {
+                    $output->writeln(
+                        \sprintf(
+                            '(Class Name : %s) %s not found in %s dictionary on line %d of %s',
+                            $name,
+                            $piece,
+                            $dict,
+                            $node->name->getStartLine(),
+                            basename($file)
+                        )
+                    );
+                }
+            }
+
+            dump(
+                $classReport,
+                $classReport->isValid(),
+                $classReport->typoCount(),
+                $classReport->getType(),
+                $classReport->getTypos()
+            );
+        }
+    }
 }
