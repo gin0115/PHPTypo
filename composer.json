@@ -38,7 +38,8 @@
         "symfony/polyfill-php80": "^1.22",
         "symfony/finder": "^5.2",
         "phpunit/php-code-coverage": "^9.2",
-        "symfony/filesystem": "^5.2"
+        "symfony/filesystem": "^5.2",
+        "nikic/php-parser": "^4.10"
     },
     "scripts": {
         "test": "phpunit --coverage-clover coverage.xml",

@@ -6,7 +6,7 @@
     'aliases' => 
     array (
     ),
-    'reference' => 'd7a0df1b02628394de0426bfa72595a4736cb552',
+    'reference' => '7a8012bd646e37b930c2b48b2249fdadf053f403',
     'name' => 'gin0115/phptypo',
   ),
   'versions' => 
@@ -45,7 +45,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => 'd7a0df1b02628394de0426bfa72595a4736cb552',
+      'reference' => '7a8012bd646e37b930c2b48b2249fdadf053f403',
     ),
     'mnapoli/silly' => 
     array (
