@@ -45,6 +45,7 @@ class SpellCheck extends Command
 
         $stmts = $parser->parse(\file_get_contents($file) ?: '');
         $stmts = $traverser->traverse($stmts ?? []);
+        
         foreach ($stmts[0]->stmts as $node) {
             $name = trim($node->name->name);
             $pieces = array_values(
@@ -55,10 +56,10 @@ class SpellCheck extends Command
                     }
                 )
             );
-            $classReport = $factory->createClass(
-                $node->name->getStartLine(),
-                $name
-            );
+            
+            
+            $classReport = $factory->createClass($node->name->getStartLine(), $name);
+            
             foreach ($pieces ?: [] as $key => $piece) {
                 // Only check if word longer than minword
                 if (\mb_strlen($piece) >= $minWord && ! $dictionary->validWord($piece)) {
