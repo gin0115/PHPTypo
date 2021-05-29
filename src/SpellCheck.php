@@ -2,15 +2,19 @@
 
 namespace Gin0115\PHPTypo;
 
-use Gin0115\PHPTypo\Config\ConfigLoader;
+use SplFileInfo;
 use Silly\Command\Command;
-use Gin0115\PHPTypo\Dictionary\DictionaryProvider;
 use Gin0115\PHPTypo\Files\FileList;
+use Gin0115\PHPTypo\Reader\FileParser;
+use Gin0115\PHPTypo\Config\ConfigLoader;
+use Gin0115\PHPTypo\Dictionary\DictionaryProvider;
+use Gin0115\PHPTypo\Report\Element\ElementFactory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class SpellCheck extends Command
 {
+
 
     /**
      * @param string $src
@@ -20,7 +24,7 @@ class SpellCheck extends Command
      * @param InputInterface $input
      * @return void
      */
-    public function __invoke(
+    public function __invoke( //phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter.FoundInExtendedClassAfterLastUsed
         string $src,
         string $dict,
         string $minWord,
@@ -28,45 +32,57 @@ class SpellCheck extends Command
         InputInterface $input
     ) {
 
-        $config = (new ConfigLoader(
+        $config = ( new ConfigLoader(
             dirname(__DIR__, 1),
             $src,
             $dict,
             $minWord
-        ))->getConfig();
-        dump($config);
+        ) )->getConfig();
+
 
         $files = new FileList($config);
-        dump($files);
-
-
-
-
+        // dump($files);
 
 
         // PROOF OF CONCEPT.
 
-        $dictionary = (new DictionaryProvider())->language($dict);
+        $dictionary = ( new DictionaryProvider() )->language($dict);
 
+        // $parser = ( new \PhpParser\ParserFactory() )
+        //     ->create(\PhpParser\ParserFactory::PREFER_PHP7);
 
-        $parser = (new \PhpParser\ParserFactory())
-            ->create(\PhpParser\ParserFactory::PREFER_PHP7);
+        // $traverser = new \PhpParser\NodeTraverser();
 
-        $traverser     = new \PhpParser\NodeTraverser();
+        $file = \dirname(__DIR__, 1) . '/tests/files/ValidClass.php';
 
-        $file = \dirname(__DIR__, 1) . '/tests/files/ClassNameTypo.php';
-        $stmts = $parser->parse(\file_get_contents($file) ?: '');
-        $stmts = $traverser->traverse($stmts ?? []);
+        $factory = new ElementFactory(new SplFileInfo($file));
+        // dump($factory);
+
+        // $stmts = $parser->parse(\file_get_contents($file) ?: '');
+        // $stmts = $traverser->traverse($stmts ?? array());
+        $parser = new FileParser();
+		$nodes = $parser->getParsedTraverser(file_get_contents($file) ?: '');
+		dd($nodes[0]);
+
         foreach ($stmts[0]->stmts as $node) {
-            $name = $node->name->name;
-            $pieces = preg_split('/(?=[A-Z])/', $name);
+            $name   = trim($node->name->name);
+            $pieces = array_values(
+                array_filter(
+                    preg_split('/(?=[A-Z])/', $name),
+                    function ($piece) {
+                        return \mb_strlen($piece) !== 0;
+                    }
+                )
+            );
 
-            foreach ($pieces ?: [] as $key => $piece) {
+            $classReport = $factory->createClass($node->name->getStartLine(), $name);
+
+            foreach ($pieces ?: array() as $key => $piece) {
                 // Only check if word longer than minword
-                if (\mb_strlen($piece) >= $minWord && !$dictionary->validWord($piece)) {
+                if (\mb_strlen($piece) >= $minWord && ! $dictionary->validWord($piece)) {
                     $output->writeln(
                         \sprintf(
-                            "(Class Name : %s) %s not found in %s dictionary on line %d of %s",
+                            '(Class Name : %s) %s not found in %s dictionary on line %d of %s',
                             $name,
                             $piece,
                             $dict,
@@ -76,6 +92,14 @@ class SpellCheck extends Command
                     );
                 }
             }
+
+            dump(
+                $classReport,
+                $classReport->isValid(),
+                $classReport->typoCount(),
+                $classReport->getType(),
+                $classReport->getTypos()
+            );
         }
     }
 }

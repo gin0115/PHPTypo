@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Holds a list of all the files which are to be checked.
- * 
+ *
  * @since 0.1.0
  * @author Glynn Quelch <glynn.quelch@gmail.com>
  */
+
+declare(strict_types=1);
 
 namespace Gin0115\PHPTypo\Files;
 
@@ -75,7 +75,7 @@ class FileList
     }
 
     /**
-     * Iterates through all directories and fetches the 
+     * Iterates through all directories and fetches all valid filepaths.
      *
      * @return void
      */
@@ -90,7 +90,15 @@ class FileList
                 continue;
             }
 
-            $this->filelist[$info->getPathname()] = $info->getPathname();
+            $this->filelist[$info->getPathname()] = new FileInfo($info->getPathname());
         }
+    }
+
+    /**
+     * Get the value of filelist
+     */
+    public function getFileList(): array
+    {
+        return $this->filelist;
     }
 }
