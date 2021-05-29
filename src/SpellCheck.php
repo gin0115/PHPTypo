@@ -4,10 +4,9 @@ namespace Gin0115\PHPTypo;
 
 use SplFileInfo;
 use Silly\Command\Command;
-use Silly\Command\Command;
 use Gin0115\PHPTypo\Files\FileList;
+use Gin0115\PHPTypo\Reader\FileParser;
 use Gin0115\PHPTypo\Config\ConfigLoader;
-use Gin0115\PHPTypo\Dictionary\DictionaryProvider;
 use Gin0115\PHPTypo\Dictionary\DictionaryProvider;
 use Gin0115\PHPTypo\Report\Element\ElementFactory;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,7 +24,7 @@ class SpellCheck extends Command
      * @param InputInterface $input
      * @return void
      */
-    public function __invoke(
+    public function __invoke( //phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter.FoundInExtendedClassAfterLastUsed
         string $src,
         string $dict,
         string $minWord,
@@ -42,24 +41,28 @@ class SpellCheck extends Command
 
 
         $files = new FileList($config);
+        // dump($files);
 
 
         // PROOF OF CONCEPT.
 
         $dictionary = ( new DictionaryProvider() )->language($dict);
 
-        $parser = ( new \PhpParser\ParserFactory() )
-            ->create(\PhpParser\ParserFactory::PREFER_PHP7);
+        // $parser = ( new \PhpParser\ParserFactory() )
+        //     ->create(\PhpParser\ParserFactory::PREFER_PHP7);
 
-        $traverser = new \PhpParser\NodeTraverser();
+        // $traverser = new \PhpParser\NodeTraverser();
 
-        $file = \dirname(__DIR__, 1) . '/tests/files/ClassNameTypo.php';
+        $file = \dirname(__DIR__, 1) . '/tests/files/ValidClass.php';
 
         $factory = new ElementFactory(new SplFileInfo($file));
         // dump($factory);
 
-        $stmts = $parser->parse(\file_get_contents($file) ?: '');
-        $stmts = $traverser->traverse($stmts ?? array());
+        // $stmts = $parser->parse(\file_get_contents($file) ?: '');
+        // $stmts = $traverser->traverse($stmts ?? array());
+        $parser = new FileParser();
+		$nodes = $parser->getParsedTraverser(file_get_contents($file) ?: '');
+		dd($nodes[0]);
 
         foreach ($stmts[0]->stmts as $node) {
             $name   = trim($node->name->name);
